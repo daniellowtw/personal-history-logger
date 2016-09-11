@@ -8,13 +8,15 @@ import (
 )
 
 type config struct {
-	folder string
-	port   int
+	folder  string
+	port    int
+	baseURL string
 }
 
 func main() {
 	c := config{}
 	flag.StringVar(&c.folder, "dir", ".", "log path")
+	flag.StringVar(&c.baseURL, "base", "", "base url override with protocol for generating bookmarklet")
 	flag.IntVar(&c.port, "port", 9999, "port of server")
 	var showVersionOnly = flag.Bool("version", false, "print version info")
 	flag.Parse()
@@ -30,6 +32,6 @@ func main() {
 	if err := lf.prepFolder(); err != nil {
 		log.Fatal(err)
 	}
-	startServer(lf, c.port)
+	startServer(lf, c.port, c.baseURL)
 
 }

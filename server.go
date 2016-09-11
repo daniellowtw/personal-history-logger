@@ -18,6 +18,8 @@ type writerFactory interface {
 type server struct {
 	writerFactory writerFactory
 	port          int
+	// baseURL has the protocol and is used to generate the bookmarklet
+	baseURL string
 }
 
 func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
@@ -73,18 +75,25 @@ func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) showBookmarklet(w http.ResponseWriter, r *http.Request) {
-	host := r.Host
-	js := `javascript:(function(){var url = location.href || url;window.open('http://%s/post?ac=1&url='+btoa(url));})();void(0);`
-	w.Write([]byte(fmt.Sprintf(`<a href="%s">Log it</a>`, fmt.Sprintf(js, host))))
+	baseURL := r.Host
+	if s.baseURL != "" {
+		baseURL = s.baseURL
+	}
+	js := `javascript:(function(){var url = location.href || url;window.open('%s/post?ac=1&url='+btoa(url));})();void(0);`
+	w.Write([]byte(fmt.Sprintf(`<a href="%s">Log it</a>`, fmt.Sprintf(js, baseURL))))
 	return
 }
 
-func startServer(wf writerFactory, port int) {
+func startServer(wf writerFactory, port int, baseURL string) {
 	s := &server{
 		writerFactory: wf,
 		port:          port,
+		baseURL:       baseURL,
 	}
 	http.HandleFunc("/post", s.processPost)
 	http.HandleFunc("/bookmarklet", s.showBookmarklet)
-	http.ListenAndServe(":"+strconv.Itoa(port), nil)
+	err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
