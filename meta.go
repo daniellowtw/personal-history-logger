@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -12,6 +11,7 @@ type Entry struct {
 	Meta      *meta
 	Timestamp int64
 	URL       string
+	Tags      []string
 }
 
 func f(m *meta, url string) error {
@@ -61,10 +61,7 @@ func g(t *html.Token, m *meta) {
 		case "title":
 			m.Title = md["content"]
 		case "keywords":
-			kws := strings.Split(md["content"], ",")
-			for _, kw := range kws {
-				m.Keywords = append(m.Keywords, strings.TrimSpace(kw))
-			}
+			m.Keywords = splitCommaLine(md["content"])
 		}
 	}
 }

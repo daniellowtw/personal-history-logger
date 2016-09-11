@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -26,6 +27,7 @@ func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	url := q.Get("url")
 	ac := q.Get("ac")
+	tags := q.Get("tags")
 	decoded, err := base64.StdEncoding.DecodeString(url)
 	if err == nil {
 		url = string(decoded)
@@ -45,6 +47,7 @@ func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
 		Meta:      m,
 		URL:       url,
 		Timestamp: time.Now().Unix(),
+		Tags:      splitCommaLine(tags),
 	}
 	d, err := json.Marshal(e)
 	if err != nil {
@@ -74,12 +77,21 @@ func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func splitCommaLine(s string) []string {
+	var res []string
+	kws := strings.Split(s, ",")
+	for _, kw := range kws {
+		res = append(res, strings.TrimSpace(kw))
+	}
+	return res
+}
+
 func (s *server) showBookmarklet(w http.ResponseWriter, r *http.Request) {
 	baseURL := r.Host
 	if s.baseURL != "" {
 		baseURL = s.baseURL
 	}
-	js := `javascript:(function(){var url = location.href || url;window.open('%s/post?ac=1&url='+btoa(url));})();void(0);`
+	js := `javascript:(function(){t=prompt('Tags:','');if(!t)return;var url = location.href || url;window.open('%s/post?tags='+t+'&ac=1&url='+btoa(url));})();void(0);`
 	w.Write([]byte(fmt.Sprintf(`<a href="%s">Log it</a>`, fmt.Sprintf(js, baseURL))))
 	return
 }
