@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"golang.org/x/net/html"
@@ -54,6 +55,7 @@ type meta struct {
 	Author      string
 	Title       string
 	Description string
+	Keywords    []string
 }
 
 func g(t *html.Token, m *meta) {
@@ -72,6 +74,11 @@ func g(t *html.Token, m *meta) {
 			m.Description = md["content"]
 		case "title":
 			m.Title = md["content"]
+		case "keywords":
+			kws := strings.Split(md["content"], ",")
+			for _, kw := range kws {
+				m.Keywords = append(m.Keywords, strings.TrimSpace(kw))
+			}
 		}
 	}
 }

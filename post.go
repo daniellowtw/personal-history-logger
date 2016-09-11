@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type server struct {
@@ -18,8 +16,6 @@ type server struct {
 
 func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	spew.Dump(q)
-
 	url := q.Get("url")
 	if url == "" {
 		log.Println("empty url")
