@@ -28,9 +28,14 @@ func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
 	url := q.Get("url")
 	ac := q.Get("ac")
 	tags := q.Get("tags")
+	// Somehow + in queries gets replaced with " "
+	url = strings.Replace(url, " ", "+", -1)
 	decoded, err := base64.StdEncoding.DecodeString(url)
 	if err == nil {
 		url = string(decoded)
+	} else {
+		origurl := q.Get("url")
+		log.Printf("cannot decode (%v) original: %v err: %v", url, origurl, err)
 	}
 	if url == "" {
 		log.Println("empty url")
