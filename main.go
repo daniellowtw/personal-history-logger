@@ -23,10 +23,13 @@ func main() {
 		fmt.Printf("%v\n", version)
 		os.Exit(0)
 	}
-	w, err := prepFolder(c.folder)
-	if err != nil {
+	lf := &logFactory{
+		dirPath: c.folder,
+		format:  "01-02-2006",
+	}
+	if err := lf.prepFolder(); err != nil {
 		log.Fatal(err)
 	}
-	startServer(w, c.port)
+	startServer(lf, c.port)
 
 }

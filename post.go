@@ -9,9 +9,13 @@ import (
 	"time"
 )
 
+type writerFactory interface {
+	Get(time.Time) (io.Writer, error)
+}
+
 type server struct {
-	w    io.Writer
-	port int
+	writerFactory writerFactory
+	port          int
 }
 
 func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
@@ -40,22 +44,28 @@ func (s *server) processPost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
-	_, err = s.w.Write(d)
-	s.w.Write([]byte("\n"))
+	logWriter, err := s.writerFactory.Get(time.Now())
 	if err != nil {
 		log.Println("error writing to file: %v", err)
 		w.WriteHeader(500)
 		return
 	}
+	_, err = logWriter.Write(d)
+	if err != nil {
+		log.Println("error writing to file: %v", err)
+		w.WriteHeader(500)
+		return
+	}
+	logWriter.Write([]byte("\n"))
 	w.WriteHeader(200)
 	log.Println("successful")
 	return
 }
 
-func startServer(w io.Writer, port int) {
+func startServer(wf writerFactory, port int) {
 	s := &server{
-		w:    w,
-		port: port,
+		writerFactory: wf,
+		port:          port,
 	}
 	http.HandleFunc("/post", s.processPost)
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
