@@ -87,7 +87,7 @@ func splitCommaLine(s string) []string {
 }
 
 func (s *server) showBookmarklet(w http.ResponseWriter, r *http.Request) {
-	baseURL := r.Host
+	baseURL := "http://" + r.Host
 	if s.baseURL != "" {
 		baseURL = s.baseURL
 	}
